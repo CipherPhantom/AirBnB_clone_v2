@@ -62,7 +62,7 @@ class HBNBCommand(cmd.Cmd):
                     valid = True
                 elif (value[0] == '"' and value[-1] == '"'):
                     value = value[1:-1]
-                    value = value.replace("_", " ")
+                    value = value.replace("_", " ").replace('"', '\\"')
                     valid = True
 
                 if valid:
