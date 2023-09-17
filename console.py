@@ -39,12 +39,36 @@ class HBNBCommand(cmd.Cmd):
         """Creates a new instance of a Model"""
         if not line:
             print("** class name missing **")
-        elif line not in MODELS:
+            return
+        args = line.split()
+        class_ = args[0]
+        params = []
+        if class_ not in MODELS:
             print("** class doesn't exist **")
-        else:
-            obj = MODELS[line]()
-            obj.save()
-            print(obj.id)
+            return
+        obj = MODELS[class_]()
+        if len(args) > 1:
+            params = args[1:]
+
+        for param in params:
+            if re.match(r'.*=.*', param):
+                key, value = param.split("=")
+                valid = False
+                if value.isdigit():
+                    value = int(value)
+                    valid = True
+                elif re.match(r'[0-9]*\.[0-9]*', value):
+                    value = float(value)
+                    valid = True
+                elif (value[0] == '"' and value[-1] == '"'):
+                    value = value[1:-1]
+                    value = value.replace("_", " ")
+                    valid = True
+
+                if valid:
+                    setattr(obj, key, value)
+        obj.save()
+        print(obj.id)
 
     def do_show(self, line):
         """Prints the string representation of an

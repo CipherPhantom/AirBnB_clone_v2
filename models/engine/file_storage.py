@@ -27,8 +27,11 @@ class FileStorage:
         "BaseModel": BaseModel,
         }
 
-    def all(self):
+    def all(self, cls=None):
         """Returns the dictionary __objects"""
+        if cls:
+            return {key: obj for key, obj in type(self).__objects.items()
+                    if isinstance(obj, cls)}
         return type(self).__objects
 
     def new(self, obj):
@@ -53,3 +56,11 @@ class FileStorage:
             for key, value in objects_dict.items():
                 _class_ = value["__class__"]
                 type(self).__objects[key] = type(self).MODELS[_class_](**value)
+
+    def delete(self, obj=None):
+        """Deletes an obj from __objects"""
+        if obj:
+            key = f"{type(obj).__name__}.{obj.id}"
+            if key in type(self).__objects:
+                del type(self).__objects[key]
+                self.save()
