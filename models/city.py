@@ -1,8 +1,9 @@
 #!/usr/bin/python3
 """Defines a City class"""
+import models
 from models.base_model import BaseModel, Base
 from sqlalchemy import Column, String, ForeignKey
-
+from sqlalchemy.orm import relationship
 
 class City(BaseModel, Base):
     """Represents a city"""
@@ -10,3 +11,13 @@ class City(BaseModel, Base):
     __tablename__ = "cities"
     name = Column(String(128), nullable=False)
     state_id = Column(String(60), ForeignKey("states.id"), nullable=False)
+    places = relationship(
+            'Place',
+            backref="cities",
+            cascade="all, delete-orphan")
+
+    @property
+    def places(self):
+        """Gets the attribute"""
+        places = models.storage.all("Place")
+        return [place for place in places if place.city_id == self.id]

@@ -12,7 +12,7 @@ from sqlalchemy import create_engine, MetaData, Table
 from sqlalchemy.orm import sessionmaker, scoped_session
 
 
-MODELS = [City, State, User]
+MODELS = [City, User, Place, State]
 
 HBNB_ENV = os.getenv("HBNB_ENV")
 HBNB_MYSQL_USER = os.getenv("HBNB_MYSQL_USER")
@@ -20,11 +20,12 @@ HBNB_MYSQL_PWD = os.getenv("HBNB_MYSQL_PWD")
 HBNB_MYSQL_HOST = os.getenv("HBNB_MYSQL_HOST")
 HBNB_MYSQL_DB = os.getenv("HBNB_MYSQL_DB")
 
+
 class DBStorage:
     """Represents a database storage engine"""
 
     __engine = None
-    __session = None 
+    __session = None
 
     def __init__(self):
         """Initializes the class"""
@@ -73,6 +74,6 @@ class DBStorage:
         """Creates all tables in the database and
         create the current database session"""
         Base.metadata.create_all(self.__engine)
-        session_factory = sessionmaker(bind=self.__engine, expire_on_commit=False)
-        Session = scoped_session(session_factory)
+        session = sessionmaker(bind=self.__engine, expire_on_commit=False)
+        Session = scoped_session(session)
         self.__session = Session()

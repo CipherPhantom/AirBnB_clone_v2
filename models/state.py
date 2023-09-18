@@ -5,6 +5,7 @@ from models.base_model import BaseModel, Base
 from sqlalchemy import Column, String
 from sqlalchemy.orm import relationship
 
+
 class State(BaseModel, Base):
     """Represents a state"""
 
@@ -20,4 +21,3 @@ class State(BaseModel, Base):
         """Gets the attribute"""
         cities = models.storage.all("City")
         return [city for city in cities if city.state_id == self.id]
-        
