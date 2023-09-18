@@ -1,7 +1,10 @@
 #!/usr/bin/python3
 """Defines a Place class"""
+import models
 from models.base_model import BaseModel, Base
 from sqlalchemy import Column, Integer, Float, String, ForeignKey
+from sqlalchemy.orm import relationship
+
 
 class Place(BaseModel, Base):
     """Represents a place"""
@@ -18,3 +21,13 @@ class Place(BaseModel, Base):
     latitude = Column(Float)
     longitude = Column(Float)
     amenity_ids = []
+    reviews = relationship(
+            "Review",
+            backref="place",
+            cascade="all, delete-orphan")
+
+    @property
+    def reviews(self):
+        """Gets the attribute"""
+        reviews = models.storage.all("Review")
+        return [review for review in reviews if review.place_id == self.id]
