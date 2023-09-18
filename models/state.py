@@ -19,5 +19,5 @@ class State(BaseModel, Base):
     @property
     def cities(self):
         """Gets the attribute"""
-        cities = models.storage.all("City")
+        cities = models.storage.all("City").values()
         return [city for city in cities if city.state_id == self.id]

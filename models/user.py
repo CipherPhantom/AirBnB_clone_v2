@@ -26,11 +26,11 @@ class User(BaseModel, Base):
     @property
     def places(self):
         """Gets the attribute"""
-        places = models.storage.all("Place")
+        places = models.storage.all("Place").values()
         return [place for place in places if place.user_id == self.id]
 
     @property
     def reviews(self):
         """Gets the attribute"""
-        reviews = models.storage.all("Review")
+        reviews = models.storage.all("Review").values()
         return [review for review in reviews if review.user_id == self.id]

@@ -20,5 +20,5 @@ class City(BaseModel, Base):
     @property
     def places(self):
         """Gets the attribute"""
-        places = models.storage.all("Place")
+        places = models.storage.all("Place").values()
         return [place for place in places if place.city_id == self.id]

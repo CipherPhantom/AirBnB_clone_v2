@@ -12,7 +12,7 @@ from sqlalchemy import create_engine, MetaData, Table
 from sqlalchemy.orm import sessionmaker, scoped_session
 
 
-MODELS = [City, User, Place, State, Review]
+MODELS = [City, User, Place, State, Review, Amenity]
 
 HBNB_ENV = os.getenv("HBNB_ENV")
 HBNB_MYSQL_USER = os.getenv("HBNB_MYSQL_USER")
