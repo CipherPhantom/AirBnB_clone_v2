@@ -19,14 +19,16 @@ class BaseModel:
                     except ValueError:
                         pass
                     setattr(self, key, value)
+                if "id" not in kwargs:
+                    self.id = str(uuid.uuid4())
         else:
             self.id = str(uuid.uuid4())
             self.created_at = self.updated_at = datetime.now()
-            models.storage.new(self)
 
     def save(self):
         """Updates the updated_at attribute with the current time"""
         self.updated_at = datetime.now()
+        models.storage.new(self)
         models.storage.save()
 
     def to_dict(self):

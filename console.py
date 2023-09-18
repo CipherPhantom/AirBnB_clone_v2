@@ -40,33 +40,24 @@ class HBNBCommand(cmd.Cmd):
         if not line:
             print("** class name missing **")
             return
+        
         args = line.split()
         class_ = args[0]
-        params = []
         if class_ not in MODELS:
             print("** class doesn't exist **")
             return
-        obj = MODELS[class_]()
+        params = []
         if len(args) > 1:
             params = args[1:]
-
+        
+        kwargs = {}
         for param in params:
-            if re.match(r'.*=.*', param):
-                key, value = param.split("=")
-                valid = False
-                if value.isdigit():
-                    value = int(value)
-                    valid = True
-                elif re.match(r'[0-9]*\.[0-9]*', value):
-                    value = float(value)
-                    valid = True
-                elif (value[0] == '"' and value[-1] == '"'):
-                    value = value[1:-1]
-                    value = value.replace("_", " ").replace('"', '\\"')
-                    valid = True
-
-                if valid:
-                    setattr(obj, key, value)
+            key, value = param.split("=")
+            value = eval(value)
+            if type(value) == str:
+                value = value.replace("_", " ")
+            kwargs[key] = value
+        obj = MODELS[class_](**kwargs) 
         obj.save()
         print(obj.id)
 
