@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 """Configures the models package."""
+import os
 from .city import City
 from .user import User
 from .place import Place
@@ -8,9 +9,13 @@ from .review import Review
 from .amenity import Amenity
 from .base_model import BaseModel
 from .engine.file_storage import FileStorage
+from .engine.db_storage import DBStorage
 
 
-storage = FileStorage()
+if os.getenv("HBNB_TYPE_STORAGE") == "db":
+    storage = DBStorage()
+else:
+    storage = FileStorage()
 storage.reload()
 
 MODELS = {

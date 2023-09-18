@@ -30,6 +30,8 @@ class FileStorage:
     def all(self, cls=None):
         """Returns the dictionary __objects"""
         if cls:
+            if type(cls) == str:
+                cls = eval(cls)
             return {key: obj for key, obj in type(self).__objects.items()
                     if isinstance(obj, cls)}
         return type(self).__objects

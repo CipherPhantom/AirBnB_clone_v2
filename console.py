@@ -40,7 +40,7 @@ class HBNBCommand(cmd.Cmd):
         if not line:
             print("** class name missing **")
             return
-        
+
         args = line.split()
         class_ = args[0]
         if class_ not in MODELS:
@@ -49,7 +49,7 @@ class HBNBCommand(cmd.Cmd):
         params = []
         if len(args) > 1:
             params = args[1:]
-        
+
         kwargs = {}
         for param in params:
             key, value = param.split("=")
@@ -57,7 +57,7 @@ class HBNBCommand(cmd.Cmd):
             if type(value) == str:
                 value = value.replace("_", " ")
             kwargs[key] = value
-        obj = MODELS[class_](**kwargs) 
+        obj = MODELS[class_](**kwargs)
         obj.save()
         print(obj.id)
 

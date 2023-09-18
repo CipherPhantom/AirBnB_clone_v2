@@ -3,10 +3,18 @@
 import uuid
 import models
 from datetime import datetime
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, String, DateTime
+
+Base = declarative_base()
 
 
 class BaseModel:
     """Represent the base class"""
+
+    id = Column(String(60), nullable=False, primary_key=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow())
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow())
 
     def __init__(self, *args, **kwargs):
         """Initializes the an instance of BaseModel"""
@@ -36,12 +44,19 @@ class BaseModel:
         attributes = self.__dict__.copy()
         attributes["__class__"] = type(self).__name__
 
+        if "_sa_instance_state" in attributes:
+            del attributes["_sa_instance_state"]
+
         for key, value in attributes.items():
             if isinstance(value, datetime):
                 attributes[key] = value.isoformat()
 
         return attributes
 
+    def delete(self):
+        """Deletes itself from storage"""
+        models.storage.delete(self)
+
     def __str__(self):
         """Returns the string representation of the instance"""
-        return f"[{type(self).__name__}] ({self.id}) {self.__dict__}"
+        return f"[{type(self).__name__}] ({self.id}) {self.to_dict()}"
