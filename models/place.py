@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 """Defines a Place class"""
 import models
-import os
 from models.base_model import BaseModel, Base
 from sqlalchemy import Column, Integer, Float, String, ForeignKey, Table
 from sqlalchemy.orm import relationship
