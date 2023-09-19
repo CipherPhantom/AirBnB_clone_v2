@@ -59,4 +59,9 @@ class BaseModel:
 
     def __str__(self):
         """Returns the string representation of the instance"""
-        return f"[{type(self).__name__}] ({self.id}) {self.to_dict()}"
+
+        attributes = self.__dict__.copy()
+        if "_sa_instance_state" in attributes:
+            del attributes["_sa_instance_state"]
+
+        return f"[{type(self).__name__}] ({self.id}) {attributes}"
