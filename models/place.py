@@ -21,6 +21,7 @@ place_amenity = Table(
             primary_key=True,
             nullable=False))
 
+
 class Place(BaseModel, Base):
     """Represents a place"""
 

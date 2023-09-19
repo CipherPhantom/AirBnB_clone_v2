@@ -3,12 +3,12 @@
 import os
 from models.city import City
 from models.user import User
-from models.place import Place
+from models.place import Place, place_amenity
 from models.state import State
 from models.review import Review
 from models.amenity import Amenity
 from models.base_model import Base
-from sqlalchemy import create_engine, MetaData, Table
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 
 
