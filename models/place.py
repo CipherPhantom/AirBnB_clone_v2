@@ -37,31 +37,33 @@ class Place(BaseModel, Base):
     latitude = Column(Float)
     longitude = Column(Float)
     amenity_ids = []
-    reviews = relationship(
-            "Review",
-            backref="place",
-            cascade="all, delete-orphan")
-    amenities = relationship(
-            "Amenity",
-            secondary=place_amenity,
-            viewonly=False,
-            back_populates="place_amenites"
-            )
 
-    @property
-    def reviews(self):
-        """Gets the attribute"""
-        reviews = models.storage.all("Review").values()
-        return [review for review in reviews if review.place_id == self.id]
+    if os.getenv("HBNB_TYPE_STORAGE") == "db":
+        reviews = relationship(
+                "Review",
+                backref="place",
+                cascade="all, delete-orphan")
+        amenities = relationship(
+                "Amenity",
+                secondary=place_amenity,
+                viewonly=False,
+                back_populates="place_amenites"
+                )
+    else:
+        @property
+        def reviews(self):
+            """Gets the attribute"""
+            reviews = models.storage.all("Review").values()
+            return [review for review in reviews if review.place_id == self.id]
 
-    @property
-    def amenities(self):
-        """"Gets the attribute"""
-        return self.amenity_ids
+        @property
+        def amenities(self):
+            """"Gets the attribute"""
+            return self.amenity_ids
 
-    @amenities.setter
-    def amenities(self, obj):
-        """Sets the attribute"""
-        if isinstance(obj, models.MODELS["Amenity"]) and \
-                obj.id not in self.amenity_ids:
-            self.amenity_ids.append(obj.id)
+        @amenities.setter
+        def amenities(self, obj):
+            """Sets the attribute"""
+            if isinstance(obj, models.MODELS["Amenity"]) and \
+                    obj.id not in self.amenity_ids:
+                self.amenity_ids.append(obj.id)
