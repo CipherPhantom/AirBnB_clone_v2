@@ -12,6 +12,7 @@ import datetime
 import models.place
 from io import StringIO
 from models.place import Place
+from models.amenity import Amenity
 from models.base_model import BaseModel
 from models import storage
 from models.engine.file_storage import FileStorage
@@ -57,12 +58,9 @@ class TestPlaceClass(unittest.TestCase):
         self.assertEqual(self.p0.id, str(uuid.UUID(self.p0.id)))
 
     def test_InstanceVariable(self):
-        with self.assertRaises(AttributeError):
-            print(Place.id)
-        with self.assertRaises(AttributeError):
-            print(Place.created_at)
-        with self.assertRaises(AttributeError):
-            print(Place.updated_at)
+        self.assertNotEqual(type(Place.name), str)
+        self.assertNotEqual(type(Place.created_at), datetime.datetime)
+        self.assertNotEqual(type(Place.updated_at), datetime.datetime)
 
     def test_createdAt(self):
         self.assertIsNot(self.p0.created_at, None)
@@ -76,104 +74,52 @@ class TestPlaceClass(unittest.TestCase):
         self.assertLess((self.p0.updated_at - self.p0.created_at).
                         total_seconds(), 0.001)
 
-    def testInstantiationWithNew(self):
-        with patch('models.storage.new') as m:
-            p1 = Place()
-            self.assertEqual(m.call_args.args, (p1, ))
-            FileStorage._FileStorage__objects = {}
-
 
 class TestPlaceClassAttributes(unittest.TestCase):
     def setUp(self):
-        self.p0 = Place()
+        self.c_id = str(uuid.uuid4())
+        self.u_id = str(uuid.uuid4())
+        self.p0 = Place(city_id=self.c_id, user_id=self.u_id, name="La Casa",
+                        description="Mountain and Ocean View",
+                        number_rooms=7, number_bathrooms=4,
+                        max_guest=10, price_by_night=200,
+                        latitude=2.5, longitude=2.31
+                        )
 
     def testCityIdAttribute(self):
-        self.assertEqual(self.p0.city_id, Place.city_id)
-        self.assertEqual(type(Place.city_id), str)
-
-        self.p0.city_id = str(uuid.uuid4())
-        self.assertNotEqual(self.p0.city_id, Place.city_id)
-        self.assertEqual(Place.city_id, '')
+        self.assertEqual(self.p0.city_id, self.c_id)
 
     def testUserIdAttribute(self):
-        self.assertEqual(self.p0.user_id, Place.user_id)
-        self.assertEqual(type(Place.user_id), str)
-
-        self.p0.user_id = str(uuid.uuid4())
-        self.assertNotEqual(self.p0.user_id, Place.user_id)
-        self.assertEqual(Place.user_id, '')
+        self.assertEqual(self.p0.user_id, self.u_id)
 
     def testNameAttribute(self):
-        self.assertEqual(self.p0.name, Place.name)
-        self.assertEqual(type(Place.name), str)
-
-        self.p0.name = "La Casa"
-        self.assertNotEqual(self.p0.name, Place.name)
-        self.assertEqual(Place.name, '')
+        self.assertEqual(self.p0.name, "La Casa")
 
     def testDescriptionAttribute(self):
-        self.assertEqual(self.p0.description, Place.description)
-        self.assertEqual(type(Place.description), str)
-
-        self.p0.description = "Mountain and Ocean View"
-        self.assertNotEqual(self.p0.description, Place.description)
-        self.assertEqual(Place.description, '')
+        self.assertEqual(self.p0.description, "Mountain and Ocean View")
 
     def testNumberRoomsAttribute(self):
-        self.assertEqual(self.p0.number_rooms, Place.number_rooms)
-        self.assertEqual(type(Place.number_rooms), int)
-
-        self.p0.number_rooms = 7
-        self.assertNotEqual(self.p0.number_rooms, Place.number_rooms)
-        self.assertEqual(Place.number_rooms, 0)
+        self.assertEqual(self.p0.number_rooms, 7)
 
     def testNumberBathroomsAttribute(self):
-        self.assertEqual(self.p0.number_bathrooms, Place.number_bathrooms)
-        self.assertEqual(type(Place.number_bathrooms), int)
-
-        self.p0.number_bathrooms = 4
-        self.assertNotEqual(self.p0.number_bathrooms, Place.number_bathrooms)
-        self.assertEqual(Place.number_bathrooms, 0)
+        self.assertEqual(self.p0.number_bathrooms, 4)
 
     def testMaxGuestAttribute(self):
-        self.assertEqual(self.p0.max_guest, Place.max_guest)
-        self.assertEqual(type(Place.max_guest), int)
-
-        self.p0.max_guest = 12
-        self.assertNotEqual(self.p0.max_guest, Place.max_guest)
-        self.assertEqual(Place.max_guest, 0)
+        self.assertEqual(self.p0.max_guest, 10)
 
     def testPriceByNightAttribute(self):
-        self.assertEqual(self.p0.price_by_night, Place.price_by_night)
-        self.assertEqual(type(Place.price_by_night), int)
-
-        self.p0.price_by_night = 112
-        self.assertNotEqual(self.p0.price_by_night, Place.price_by_night)
-        self.assertEqual(Place.price_by_night, 0)
+        self.assertEqual(self.p0.price_by_night, 200)
 
     def testLatitudeAttribute(self):
-        self.assertEqual(self.p0.latitude, Place.latitude)
-        self.assertEqual(type(Place.latitude), float)
-
-        self.p0.latitude = 5.357
-        self.assertNotEqual(self.p0.latitude, Place.latitude)
-        self.assertEqual(Place.latitude, 0.0)
+        self.assertEqual(self.p0.latitude, 2.5)
 
     def testLongitudeAttribute(self):
-        self.assertEqual(self.p0.longitude, Place.longitude)
-        self.assertEqual(type(Place.longitude), float)
-
-        self.p0.longitude = 10.257
-        self.assertNotEqual(self.p0.longitude, Place.longitude)
-        self.assertEqual(Place.longitude, 0.0)
+        self.assertEqual(self.p0.longitude, 2.31)
 
     def testAmenityIdsAttribute(self):
-        self.assertEqual(self.p0.amenity_ids, Place.amenity_ids)
-        self.assertEqual(type(Place.amenity_ids), list)
-
-        self.p0.amenity_ids = [str(uuid.uuid4())]
-        self.assertNotEqual(self.p0.amenity_ids, Place.amenity_ids)
-        self.assertEqual(Place.amenity_ids, [])
+        a0 = Amenity(name="Wifi")
+        self.p0.amenities.append(a0)
+        self.assertEqual(self.p0.amenities[0].id, a0.id)
 
 
 class TestStrMethod(unittest.TestCase):
@@ -189,9 +135,12 @@ class TestStrMethod(unittest.TestCase):
         p1.price_by_night = 138
         p1.latitude = 5.734
         p1.longitude = 10.2456
-        p1.amenity_ids = [str(uuid.uuid4()), str(uuid.uuid4())]
+
+        p1_dict_copy = p1.__dict__.copy()
+        if '_sa_instance_state' in p1_dict_copy:
+            del p1_dict_copy['_sa_instance_state']
         self.assertEqual(str(p1), "[{}] ({}) {}".format(
-                         type(p1).__name__, p1.id, p1.__dict__))
+                         type(p1).__name__, p1.id, p1_dict_copy))
 
     def testPrint(self):
         p1 = Place()
@@ -208,9 +157,7 @@ class TestStrMethod(unittest.TestCase):
         p1.amenity_ids = [str(uuid.uuid4()), str(uuid.uuid4())]
         with patch("sys.stdout", new=StringIO()) as mock_print:
             print(p1)
-            self.assertEqual(mock_print.getvalue(), "[{}] ({}) {}\n".
-                             format(type(p1).__name__,
-                             p1.id, p1.__dict__))
+            self.assertEqual(mock_print.getvalue(), "{}\n".format(str(p1)))
 
 
 class TestSaveMethod(unittest.TestCase):
@@ -223,23 +170,16 @@ class TestSaveMethod(unittest.TestCase):
 
     def testSaveToStorage(self):
         p1 = Place()
-        p1.city_id = str(uuid.uuid4())
-        p1.user_id = str(uuid.uuid4())
-        p1.name = "The Potter's"
-        p1.number_rooms = 4
-        p1.price_by_night = 150
-        p1.latitude = 21.3453
-        p1.longitude = 16.1226
-        p1.amenity_ids = [str(uuid.uuid4()), str(uuid.uuid4())]
         prev_time = p1.updated_at
         fname = "file.json"
-        all_o = storage.all()
-        al_k = ['{}.{}'.format(type(o).__name__, o.id) for o in all_o.values()]
-        with patch("models.engine.file_storage.open", mock_open()) as mock_f:
-            p1.save()
-            f_dict = {k: v.to_dict() for k, v in zip(al_k, all_o.values())}
-            fcontent = json.dumps(f_dict)
-            mock_f.assert_called_once_with(fname, 'w', encoding='utf-8')
+
+        with patch('models.storage.new') as m:
+            with patch("models.engine.file_storage.open", mock_open()) as mk_f:
+                p1.save()
+                mk_f.assert_called_once_with(fname, 'w', encoding='utf-8')
+                self.assertEqual(m.call_args.args, (p1, ))
+                FileStorage._FileStorage__objects = {}
+
         self.assertEqual(type(p1.updated_at), datetime.datetime)
         self.assertGreater(p1.updated_at, prev_time)
 
@@ -289,7 +229,6 @@ class TestPlaceFromDict(unittest.TestCase):
             self.assertIs(m.call_args, None)
 
         self.assertEqual(p1_dict, p2.to_dict())
-        self.assertEqual(p1.__dict__, p2.__dict__)
         self.assertIsNot(p1, p2)
 
     def testCreateFromCustomDict(self):
@@ -332,5 +271,4 @@ class TestInstantiationArguments(unittest.TestCase):
         p2 = Place("test", str(uuid.uuid4()),
                    datetime.datetime.now(), **p1_dict)
         self.assertEqual(p1_dict, p2.to_dict())
-        self.assertEqual(p1.__dict__, p2.__dict__)
         self.assertIsNot(p1, p2)

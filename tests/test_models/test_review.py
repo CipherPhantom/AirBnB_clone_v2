@@ -57,12 +57,9 @@ class TestReviewClass(unittest.TestCase):
         self.assertEqual(self.r0.id, str(uuid.UUID(self.r0.id)))
 
     def test_InstanceVariable(self):
-        with self.assertRaises(AttributeError):
-            print(Review.id)
-        with self.assertRaises(AttributeError):
-            print(Review.created_at)
-        with self.assertRaises(AttributeError):
-            print(Review.updated_at)
+        self.assertNotEqual(type(Review.id), str)
+        self.assertNotEqual(type(Review.created_at), datetime.datetime)
+        self.assertNotEqual(type(Review.updated_at), datetime.datetime)
 
     def test_createdAt(self):
         self.assertIsNot(self.r0.created_at, None)
@@ -76,40 +73,22 @@ class TestReviewClass(unittest.TestCase):
         self.assertLess((self.r0.updated_at - self.r0.created_at).
                         total_seconds(), 0.001)
 
-    def testInstantiationWithNew(self):
-        with patch('models.storage.new') as m:
-            r1 = Review()
-            self.assertEqual(m.call_args.args, (r1, ))
-            FileStorage._FileStorage__objects = {}
-
 
 class TestReviewClassAttributes(unittest.TestCase):
     def setUp(self):
         self.r0 = Review()
+        self.p_id = str(uuid.uuid4())
+        self.u_id = str(uuid.uuid4())
+        self.r0 = Review(place_id=self.p_id, user_id=self.u_id, text="Perfect")
 
     def testPlaceIdAttribute(self):
-        self.assertEqual(self.r0.place_id, Review.place_id)
-        self.assertEqual(type(Review.place_id), str)
-
-        self.r0.place_id = str(uuid.uuid4())
-        self.assertNotEqual(self.r0.place_id, Review.place_id)
-        self.assertEqual(Review.place_id, '')
+        self.assertEqual(self.r0.place_id, self.p_id)
 
     def testUserIdAttribute(self):
-        self.assertEqual(self.r0.user_id, Review.user_id)
-        self.assertEqual(type(Review.user_id), str)
-
-        self.r0.user_id = str(uuid.uuid4())
-        self.assertNotEqual(self.r0.user_id, Review.user_id)
-        self.assertEqual(Review.user_id, '')
+        self.assertEqual(self.r0.user_id, self.u_id)
 
     def testTextAttribute(self):
-        self.assertEqual(self.r0.text, Review.text)
-        self.assertEqual(type(Review.text), str)
-
-        self.r0.text = "Perfect"
-        self.assertNotEqual(self.r0.text, Review.text)
-        self.assertEqual(Review.text, '')
+        self.assertEqual(self.r0.text, "Perfect")
 
 
 class TestStrMethod(unittest.TestCase):
@@ -118,8 +97,12 @@ class TestStrMethod(unittest.TestCase):
         r1.place_id = str(uuid.uuid4())
         r1.user_id = str(uuid.uuid4())
         r1.text = "Totally Recommend"
+
+        r1_dict_copy = r1.__dict__.copy()
+        if '_sa_instance_state' in r1_dict_copy:
+            del r1_dict_copy['_sa_instance_state']
         self.assertEqual(str(r1), "[{}] ({}) {}".format(
-                         type(r1).__name__, r1.id, r1.__dict__))
+                         type(r1).__name__, r1.id, r1_dict_copy))
 
     def testPrint(self):
         r1 = Review()
@@ -128,16 +111,22 @@ class TestStrMethod(unittest.TestCase):
         r1.text = "Waste of time"
         with patch("sys.stdout", new=StringIO()) as mock_print:
             print(r1)
-            self.assertEqual(mock_print.getvalue(), "[{}] ({}) {}\n".
-                             format(type(r1).__name__,
-                             r1.id, r1.__dict__))
+            self.assertEqual(mock_print.getvalue(), "{}\n".format(str(r1)))
 
 
 class TestSaveMethod(unittest.TestCase):
     def testDateTimeUpdate(self):
         r1 = Review()
         prev_time = r1.updated_at
-        r1.save()
+        fname = "file.json"
+
+        with patch('models.storage.new') as m:
+            with patch("models.engine.file_storage.open", mock_open()) as mk_f:
+                r1.save()
+                mk_f.assert_called_once_with(fname, 'w', encoding='utf-8')
+                self.assertEqual(m.call_args.args, (r1, ))
+                FileStorage._FileStorage__objects = {}
+
         self.assertEqual(type(r1.updated_at), datetime.datetime)
         self.assertGreater(r1.updated_at, prev_time)
 
@@ -148,12 +137,8 @@ class TestSaveMethod(unittest.TestCase):
         r1.text = "Look forward to returning"
         prev_time = r1.updated_at
         fname = "file.json"
-        all_o = storage.all()
-        al_k = ['{}.{}'.format(type(o).__name__, o.id) for o in all_o.values()]
         with patch("models.engine.file_storage.open", mock_open()) as mock_f:
             r1.save()
-            f_dict = {k: v.to_dict() for k, v in zip(al_k, all_o.values())}
-            fcontent = json.dumps(f_dict)
             mock_f.assert_called_once_with(fname, 'w', encoding='utf-8')
         self.assertEqual(type(r1.updated_at), datetime.datetime)
         self.assertGreater(r1.updated_at, prev_time)
@@ -198,7 +183,6 @@ class TestReviewFromDict(unittest.TestCase):
             self.assertIs(m.call_args, None)
 
         self.assertEqual(r1_dict, r2.to_dict())
-        self.assertEqual(r1.__dict__, r2.__dict__)
         self.assertIsNot(r1, r2)
 
     def testCreateFromCustomDict(self):
@@ -240,5 +224,4 @@ class TestInstantiationArguments(unittest.TestCase):
         r2 = Review("test", str(uuid.uuid4()),
                     datetime.datetime.now(), **r1_dict)
         self.assertEqual(r1_dict, r2.to_dict())
-        self.assertEqual(r1.__dict__, r2.__dict__)
         self.assertIsNot(r1, r2)

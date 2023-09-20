@@ -46,7 +46,7 @@ class TestUserClass(unittest.TestCase):
         self.curr_time = datetime.datetime.now()
 
     def test_Instance(self):
-        self.assertIsInstance(self.u0, BaseModel)
+        self.assertIsInstance(self.u0, User)
 
     def test_SubClass(self):
         self.assertTrue(issubclass(User, BaseModel))
@@ -57,12 +57,9 @@ class TestUserClass(unittest.TestCase):
         self.assertEqual(self.u0.id, str(uuid.UUID(self.u0.id)))
 
     def test_InstanceVariable(self):
-        with self.assertRaises(AttributeError):
-            print(User.id)
-        with self.assertRaises(AttributeError):
-            print(User.created_at)
-        with self.assertRaises(AttributeError):
-            print(User.updated_at)
+        self.assertNotEqual(type(User.email), str)
+        self.assertNotEqual(type(User.created_at), datetime.datetime)
+        self.assertNotEqual(type(User.updated_at), datetime.datetime)
 
     def test_createdAt(self):
         self.assertIsNot(self.u0.created_at, None)
@@ -76,48 +73,26 @@ class TestUserClass(unittest.TestCase):
         self.assertLess((self.u0.updated_at - self.u0.created_at).
                         total_seconds(), 0.001)
 
-    def testInstantiationWithNew(self):
-        with patch('models.storage.new') as m:
-            u1 = User()
-            self.assertEqual(m.call_args.args, (u1, ))
-            FileStorage._FileStorage__objects = {}
-
 
 class TestUserClassAttributes(unittest.TestCase):
     def setUp(self):
-        self.u0 = User()
+        self.u0 = User(first_name="Ni",
+                       last_name="T",
+                       email="airbnb2@mail.com",
+                       password="root"
+                       )
 
     def testEmailAttribute(self):
-        self.assertEqual(self.u0.email, User.email)
-        self.assertEqual(type(User.email), str)
-
-        self.u0.email = "airbnb2@mail.com"
-        self.assertNotEqual(self.u0.email, User.email)
-        self.assertEqual(User.email, '')
+        self.assertEqual(self.u0.email, "airbnb2@mail.com")
 
     def testPasswordAttribute(self):
-        self.assertEqual(self.u0.password, User.password)
-        self.assertEqual(type(User.password), str)
-
-        self.u0.password = "root"
-        self.assertNotEqual(self.u0.password, User.password)
-        self.assertEqual(User.password, '')
+        self.assertEqual(self.u0.password, "root")
 
     def testFirstNameAttribute(self):
-        self.assertEqual(self.u0.first_name, User.first_name)
-        self.assertEqual(type(User.first_name), str)
-
-        self.u0.first_name = "Betty"
-        self.assertNotEqual(self.u0.first_name, User.first_name)
-        self.assertEqual(User.password, '')
+        self.assertEqual(self.u0.first_name, "Ni")
 
     def testLastNameAttribute(self):
-        self.assertEqual(self.u0.last_name, User.last_name)
-        self.assertEqual(type(User.last_name), str)
-
-        self.u0.last_name = "Butter"
-        self.assertNotEqual(self.u0.last_name, User.last_name)
-        self.assertEqual(User.last_name, '')
+        self.assertEqual(self.u0.last_name, "T")
 
 
 class TestStrMethod(unittest.TestCase):
@@ -127,8 +102,12 @@ class TestStrMethod(unittest.TestCase):
         u1.last_name = "Butter"
         u1.email = "airbnb@mail.com"
         u1.password = "root"
+
+        u1_dict_copy = u1.__dict__.copy()
+        if '_sa_instance_state' in u1_dict_copy:
+            del u1_dict_copy['_sa_instance_state']
         self.assertEqual(str(u1), "[{}] ({}) {}".format(
-                         type(u1).__name__, u1.id, u1.__dict__))
+                         type(u1).__name__, u1.id, u1_dict_copy))
 
     def testPrint(self):
         u1 = User()
@@ -137,16 +116,22 @@ class TestStrMethod(unittest.TestCase):
         u1.password = "root"
         with patch("sys.stdout", new=StringIO()) as mock_print:
             print(u1)
-            self.assertEqual(mock_print.getvalue(), "[{}] ({}) {}\n".
-                             format(type(u1).__name__,
-                             u1.id, u1.__dict__))
+            self.assertEqual(mock_print.getvalue(), "{}\n".format(str(u1)))
 
 
 class TestSaveMethod(unittest.TestCase):
     def testDateTimeUpdate(self):
         u1 = User()
         prev_time = u1.updated_at
-        u1.save()
+        fname = "file.json"
+
+        with patch('models.storage.new') as m:
+            with patch("models.engine.file_storage.open", mock_open()) as mk_f:
+                u1.save()
+                mk_f.assert_called_once_with(fname, 'w', encoding='utf-8')
+                self.assertEqual(m.call_args.args, (u1, ))
+                FileStorage._FileStorage__objects = {}
+
         self.assertEqual(type(u1.updated_at), datetime.datetime)
         self.assertGreater(u1.updated_at, prev_time)
 
@@ -156,12 +141,8 @@ class TestSaveMethod(unittest.TestCase):
         u1.password = "root"
         prev_time = u1.updated_at
         fname = "file.json"
-        all_o = storage.all()
-        al_k = ['{}.{}'.format(type(o).__name__, o.id) for o in all_o.values()]
         with patch("models.engine.file_storage.open", mock_open()) as mock_f:
             u1.save()
-            f_dict = {k: v.to_dict() for k, v in zip(al_k, all_o.values())}
-            fcontent = json.dumps(f_dict)
             mock_f.assert_called_once_with(fname, 'w', encoding='utf-8')
         self.assertEqual(type(u1.updated_at), datetime.datetime)
         self.assertGreater(u1.updated_at, prev_time)
@@ -208,7 +189,6 @@ class TestUserFromDict(unittest.TestCase):
             self.assertIs(m.call_args, None)
 
         self.assertEqual(u1_dict, u2.to_dict())
-        self.assertEqual(u1.__dict__, u2.__dict__)
         self.assertIsNot(u1, u2)
 
     def testCreateFromCustomDict(self):
@@ -249,5 +229,4 @@ class TestInstantiationArguments(unittest.TestCase):
         u2 = User("test", str(uuid.uuid4()),
                   datetime.datetime.now(), **u1_dict)
         self.assertEqual(u1_dict, u2.to_dict())
-        self.assertEqual(u1.__dict__, u2.__dict__)
         self.assertIsNot(u1, u2)

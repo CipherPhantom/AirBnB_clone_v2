@@ -82,10 +82,6 @@ class TestAllMethod(unittest.TestCase):
         self.assertIs(all_dict[k2], b2)
         FileStorage._FileStorage__objects = {}
 
-    def testAllMethodWithArg(self):
-        with self.assertRaises(TypeError):
-            storage.all({})
-
 
 class TestReloadMethod(unittest.TestCase):
     def testReloadForAbsentFile(self):

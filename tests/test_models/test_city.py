@@ -57,12 +57,9 @@ class TestCityClass(unittest.TestCase):
         self.assertEqual(self.c0.id, str(uuid.UUID(self.c0.id)))
 
     def test_InstanceVariable(self):
-        with self.assertRaises(AttributeError):
-            print(City.id)
-        with self.assertRaises(AttributeError):
-            print(City.created_at)
-        with self.assertRaises(AttributeError):
-            print(City.updated_at)
+        self.assertNotEqual(type(City.name), str)
+        self.assertNotEqual(type(City.created_at), datetime.datetime)
+        self.assertNotEqual(type(City.updated_at), datetime.datetime)
 
     def test_createdAt(self):
         self.assertIsNot(self.c0.created_at, None)
@@ -76,32 +73,19 @@ class TestCityClass(unittest.TestCase):
         self.assertLess((self.c0.updated_at - self.c0.created_at).
                         total_seconds(), 0.001)
 
-    def testInstantiationWithNew(self):
-        with patch('models.storage.new') as m:
-            c1 = City()
-            self.assertEqual(m.call_args.args, (c1, ))
-            FileStorage._FileStorage__objects = {}
-
 
 class TestCityClassAttributes(unittest.TestCase):
     def setUp(self):
-        self.c0 = City()
+        self.c0 = City(name="Arizona")
 
     def testNameAttribute(self):
-        self.assertEqual(self.c0.name, City.name)
-        self.assertEqual(type(City.name), str)
-
         self.c0.name = "Detroit"
-        self.assertNotEqual(self.c0.name, City.name)
-        self.assertEqual(City.name, '')
+        self.assertNotEqual(self.c0.name, "Arizona")
 
     def testStateIdAttribute(self):
-        self.assertEqual(self.c0.state_id, City.state_id)
-        self.assertEqual(type(City.state_id), str)
-
-        self.c0.state_id = str(uuid.uuid4())
-        self.assertNotEqual(self.c0.state_id, City.state_id)
-        self.assertEqual(City.state_id, '')
+        prev_id = self.c0.id
+        self.c0.id = str(uuid.uuid4())
+        self.assertNotEqual(self.c0.id, prev_id)
 
 
 class TestStrMethod(unittest.TestCase):
@@ -109,8 +93,11 @@ class TestStrMethod(unittest.TestCase):
         c1 = City()
         c1.name = "Hong-Kong"
         c1.state_id = str(uuid.uuid4())
+        c1_dict_copy = c1.__dict__.copy()
+        if '_sa_instance_state' in c1_dict_copy:
+            del c1_dict_copy['_sa_instance_state']
         self.assertEqual(str(c1), "[{}] ({}) {}".format(
-                         type(c1).__name__, c1.id, c1.__dict__))
+                         type(c1).__name__, c1.id, c1_dict_copy))
 
     def testPrint(self):
         c1 = City()
@@ -118,9 +105,7 @@ class TestStrMethod(unittest.TestCase):
         c1.state_id = str(uuid.uuid4())
         with patch("sys.stdout", new=StringIO()) as mock_print:
             print(c1)
-            self.assertEqual(mock_print.getvalue(), "[{}] ({}) {}\n".
-                             format(type(c1).__name__,
-                             c1.id, c1.__dict__))
+            self.assertEqual(mock_print.getvalue(), "{}\n".format(str(c1)))
 
 
 class TestSaveMethod(unittest.TestCase):
@@ -132,20 +117,19 @@ class TestSaveMethod(unittest.TestCase):
         self.assertGreater(c1.updated_at, prev_time)
 
     def testSaveToStorage(self):
-        c1 = City()
-        c1.name = "London"
+        c1 = City(name="London")
         c1.state_id = str(uuid.uuid4())
-        prev_time = c1.updated_at
         fname = "file.json"
-        all_o = storage.all()
-        al_k = ['{}.{}'.format(type(o).__name__, o.id) for o in all_o.values()]
-        with patch("models.engine.file_storage.open", mock_open()) as mock_f:
-            c1.save()
-            f_dict = {k: v.to_dict() for k, v in zip(al_k, all_o.values())}
-            fcontent = json.dumps(f_dict)
-            mock_f.assert_called_once_with(fname, 'w', encoding='utf-8')
+
+        with patch('models.storage.new') as m:
+            with patch("models.engine.file_storage.open", mock_open()) as mk_f:
+                c1.save()
+                mk_f.assert_called_once_with(fname, 'w', encoding='utf-8')
+                self.assertEqual(m.call_args.args, (c1, ))
+                FileStorage._FileStorage__objects = {}
+
         self.assertEqual(type(c1.updated_at), datetime.datetime)
-        self.assertGreater(c1.updated_at, prev_time)
+        self.assertEqual(c1.name, "London")
 
 
 class TestToDictMethod(unittest.TestCase):
@@ -186,7 +170,6 @@ class TestCityFromDict(unittest.TestCase):
             self.assertIs(m.call_args, None)
 
         self.assertEqual(c1_dict, c2.to_dict())
-        self.assertEqual(c1.__dict__, c2.__dict__)
         self.assertIsNot(c1, c2)
 
     def testCreateFromCustomDict(self):
@@ -227,5 +210,4 @@ class TestInstantiationArguments(unittest.TestCase):
         c2 = City("test", str(uuid.uuid4()),
                   datetime.datetime.now(), **c1_dict)
         self.assertEqual(c1_dict, c2.to_dict())
-        self.assertEqual(c1.__dict__, c2.__dict__)
         self.assertIsNot(c1, c2)

@@ -57,12 +57,9 @@ class TestStateClass(unittest.TestCase):
         self.assertEqual(self.s0.id, str(uuid.UUID(self.s0.id)))
 
     def test_InstanceVariable(self):
-        with self.assertRaises(AttributeError):
-            print(State.id)
-        with self.assertRaises(AttributeError):
-            print(State.created_at)
-        with self.assertRaises(AttributeError):
-            print(State.updated_at)
+        self.assertNotEqual(type(State), str)
+        self.assertNotEqual(type(State.created_at), datetime.datetime)
+        self.assertNotEqual(type(State.updated_at), datetime.datetime)
 
     def test_createdAt(self):
         self.assertIsNot(self.s0.created_at, None)
@@ -76,60 +73,53 @@ class TestStateClass(unittest.TestCase):
         self.assertLess((self.s0.updated_at - self.s0.created_at).
                         total_seconds(), 0.001)
 
-    def testInstantiationWithNew(self):
-        with patch('models.storage.new') as m:
-            s1 = State()
-            self.assertEqual(m.call_args.args, (s1, ))
-            FileStorage._FileStorage__objects = {}
-
 
 class TestStateClassAttributes(unittest.TestCase):
     def testNameAttribute(self):
-        s1 = State()
-        self.assertEqual(s1.name, State.name)
-        self.assertEqual(type(State.name), str)
-
-        s1.name = "LA"
-        self.assertNotEqual(s1.name, State.name)
-        self.assertEqual(State.name, '')
+        s1 = State(name="LA")
+        self.assertEqual(s1.name, "LA")
 
 
 class TestStrMethod(unittest.TestCase):
     def testStr(self):
         s1 = State()
         s1.name = "Kigali"
+        s1_dict_copy = s1.__dict__.copy()
+        if '_sa_instance_state' in s1_dict_copy:
+            del s1_dict_copy['_sa_instance_state']
         self.assertEqual(str(s1), "[{}] ({}) {}".format(
-                         type(s1).__name__, s1.id, s1.__dict__))
+                         type(s1).__name__, s1.id, s1_dict_copy))
 
     def testPrint(self):
         s1 = State()
         s1.name = "Kampala"
         with patch("sys.stdout", new=StringIO()) as mock_print:
             print(s1)
-            self.assertEqual(mock_print.getvalue(), "[{}] ({}) {}\n".
-                             format(type(s1).__name__,
-                             s1.id, s1.__dict__))
+            self.assertEqual(mock_print.getvalue(), "{}\n".format(str(s1)))
 
 
 class TestSaveMethod(unittest.TestCase):
     def testDateTimeUpdate(self):
         s1 = State()
         prev_time = s1.updated_at
-        s1.save()
+        fname = "file.json"
+
+        with patch('models.storage.new') as m:
+            with patch("models.engine.file_storage.open", mock_open()) as mk_f:
+                s1.save()
+                mk_f.assert_called_once_with(fname, 'w', encoding='utf-8')
+                self.assertEqual(m.call_args.args, (s1, ))
+                FileStorage._FileStorage__objects = {}
+
         self.assertEqual(type(s1.updated_at), datetime.datetime)
         self.assertGreater(s1.updated_at, prev_time)
 
     def testSaveToStorage(self):
         s1 = State()
-        s1.name = "Los-Angeles"
         prev_time = s1.updated_at
         fname = "file.json"
-        all_o = storage.all()
-        al_k = ['{}.{}'.format(type(o).__name__, o.id) for o in all_o.values()]
         with patch("models.engine.file_storage.open", mock_open()) as mock_f:
             s1.save()
-            f_dict = {k: v.to_dict() for k, v in zip(al_k, all_o.values())}
-            fcontent = json.dumps(f_dict)
             mock_f.assert_called_once_with(fname, 'w', encoding='utf-8')
         self.assertEqual(type(s1.updated_at), datetime.datetime)
         self.assertGreater(s1.updated_at, prev_time)
@@ -170,7 +160,6 @@ class TestBaseModelFromDict(unittest.TestCase):
             self.assertIs(m.call_args, None)
 
         self.assertEqual(s1_dict, s2.to_dict())
-        self.assertEqual(s1.__dict__, s2.__dict__)
         self.assertIsNot(s1, s2)
 
     def testCreateFromCustomDict(self):

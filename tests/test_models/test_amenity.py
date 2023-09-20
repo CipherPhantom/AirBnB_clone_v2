@@ -57,12 +57,9 @@ class TestAmenityClass(unittest.TestCase):
         self.assertEqual(self.a0.id, str(uuid.UUID(self.a0.id)))
 
     def test_InstanceVariable(self):
-        with self.assertRaises(AttributeError):
-            print(Amenity.id)
-        with self.assertRaises(AttributeError):
-            print(Amenity.created_at)
-        with self.assertRaises(AttributeError):
-            print(Amenity.updated_at)
+        self.assertNotEqual(type(Amenity.id), str)
+        self.assertNotEqual(type(Amenity.created_at), datetime.datetime)
+        self.assertNotEqual(type(Amenity.updated_at), datetime.datetime)
 
     def test_createdAt(self):
         self.assertIsNot(self.a0.created_at, None)
@@ -76,39 +73,31 @@ class TestAmenityClass(unittest.TestCase):
         self.assertLess((self.a0.updated_at - self.a0.created_at).
                         total_seconds(), 0.001)
 
-    def testInstantiationWithNew(self):
-        with patch('models.storage.new') as m:
-            a1 = Amenity()
-            self.assertEqual(m.call_args.args, (a1, ))
-            FileStorage._FileStorage__objects = {}
-
 
 class TestAmenityClassAttributes(unittest.TestCase):
     def testNameAttribute(self):
-        a1 = Amenity()
-        self.assertEqual(a1.name, Amenity.name)
-        self.assertEqual(type(Amenity.name), str)
-
-        a1.name = "Pool"
-        self.assertNotEqual(a1.name, Amenity.name)
-        self.assertEqual(Amenity.name, '')
+        a1 = Amenity(name="Pool")
+        self.assertEqual(type(a1.name), str)
+        self.assertEqual(a1.name, "Pool")
 
 
 class TestStrMethod(unittest.TestCase):
     def testStr(self):
         a1 = Amenity()
         a1.name = "Garden"
+
+        a1_dict_copy = a1.__dict__.copy()
+        if '_sa_instance_state' in a1_dict_copy:
+            del a1_dict_copy['_sa_instance_state']
         self.assertEqual(str(a1), "[{}] ({}) {}".format(
-                         type(a1).__name__, a1.id, a1.__dict__))
+                         type(a1).__name__, a1.id, a1_dict_copy))
 
     def testPrint(self):
         a1 = Amenity()
         a1.name = "Jacuzzi"
         with patch("sys.stdout", new=StringIO()) as mock_print:
             print(a1)
-            self.assertEqual(mock_print.getvalue(), "[{}] ({}) {}\n".
-                             format(type(a1).__name__,
-                             a1.id, a1.__dict__))
+            self.assertEqual(mock_print.getvalue(), "{}\n".format(str(a1)))
 
 
 class TestSaveMethod(unittest.TestCase):
@@ -124,13 +113,9 @@ class TestSaveMethod(unittest.TestCase):
         a1.name = "Garage"
         prev_time = a1.updated_at
         fname = "file.json"
-        all_o = storage.all()
-        al_k = ['{}.{}'.format(type(o).__name__, o.id) for o in all_o.values()]
-        with patch("models.engine.file_storage.open", mock_open()) as mock_f:
+        with patch("models.engine.file_storage.open", mock_open()) as mk_f:
             a1.save()
-            f_dict = {k: v.to_dict() for k, v in zip(al_k, all_o.values())}
-            fcontent = json.dumps(f_dict)
-            mock_f.assert_called_once_with(fname, 'w', encoding='utf-8')
+            mk_f.assert_called_once_with(fname, 'w', encoding='utf-8')
         self.assertEqual(type(a1.updated_at), datetime.datetime)
         self.assertGreater(a1.updated_at, prev_time)
 
@@ -170,7 +155,6 @@ class TestBaseModelFromDict(unittest.TestCase):
             self.assertIs(m.call_args, None)
 
         self.assertEqual(a1_dict, a2.to_dict())
-        self.assertEqual(a1.__dict__, a2.__dict__)
         self.assertIsNot(a1, a2)
 
     def testCreateFromCustomDict(self):

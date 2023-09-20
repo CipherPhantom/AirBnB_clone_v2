@@ -61,10 +61,6 @@ class TestBaseModelClass(unittest.TestCase):
         self.assertIsNot(self.b0.id, None)
         self.assertEqual(self.b0.id, str(uuid.UUID(self.b0.id)))
 
-    def test_IdInstanceVariable(self):
-        with self.assertRaises(AttributeError):
-            print(BaseModel.id)
-
     def test_createdAt(self):
         self.assertIsNot(self.b0.created_at, None)
         self.assertEqual(type(self.b0.created_at), datetime.datetime)
@@ -76,12 +72,6 @@ class TestBaseModelClass(unittest.TestCase):
         self.assertEqual(type(self.b0.updated_at), datetime.datetime)
         self.assertLess((self.b0.updated_at - self.b0.created_at).
                         total_seconds(), 0.001)
-
-    def testInstantiationWithNew(self):
-        with patch('models.storage.new') as m:
-            b1 = BaseModel()
-            self.assertEqual(m.call_args.args, (b1, ))
-            FileStorage._FileStorage__objects = {}
 
 
 class TestStrMethod(unittest.TestCase):
@@ -111,14 +101,14 @@ class TestSaveMethod(unittest.TestCase):
         b1 = BaseModel()
         prev_time = b1.updated_at
         fname = "file.json"
-        all_o = storage.all()
-        al_k = ['{}.{}'.format(type(o).__name__, o.id) for o in all_o.values()]
-        with patch("models.engine.file_storage.open", mock_open()) as mock_f:
-            b1.save()
-            # all_vals = list(map(lambda v: v.to_dict(), all_o.values()))
-            f_dict = {k: v.to_dict() for k, v in zip(al_k, all_o.values())}
-            fcontent = json.dumps(f_dict)
-            mock_f.assert_called_once_with(fname, 'w', encoding='utf-8')
+
+        with patch('models.storage.new') as m:
+            with patch("models.engine.file_storage.open", mock_open()) as mk_f:
+                b1.save()
+                mk_f.assert_called_once_with(fname, 'w', encoding='utf-8')
+                self.assertEqual(m.call_args.args, (b1, ))
+                FileStorage._FileStorage__objects = {}
+
         self.assertEqual(type(b1.updated_at), datetime.datetime)
         self.assertGreater(b1.updated_at, prev_time)
 
