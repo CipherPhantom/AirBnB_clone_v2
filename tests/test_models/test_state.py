@@ -18,16 +18,19 @@ from models.engine.file_storage import FileStorage
 from unittest.mock import patch, mock_open
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 def setUpModule():
     FileStorage._FileStorage__objects = {}
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 def tearDownModule():
     FileStorage._FileStorage__objects = {}
     if os.path.exists("file.json"):
         os.remove("file.json")
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestAllStateDocstrings(unittest.TestCase):
     def setUp(self):
         self.s0 = State()
@@ -40,6 +43,7 @@ class TestAllStateDocstrings(unittest.TestCase):
         self.assertGreater(len(State.__doc__), 1)
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestStateClass(unittest.TestCase):
     def setUp(self):
         self.s0 = State()
@@ -74,12 +78,14 @@ class TestStateClass(unittest.TestCase):
                         total_seconds(), 0.001)
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestStateClassAttributes(unittest.TestCase):
     def testNameAttribute(self):
         s1 = State(name="LA")
         self.assertEqual(s1.name, "LA")
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestStrMethod(unittest.TestCase):
     def testStr(self):
         s1 = State()
@@ -98,6 +104,7 @@ class TestStrMethod(unittest.TestCase):
             self.assertEqual(mock_print.getvalue(), "{}\n".format(str(s1)))
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestSaveMethod(unittest.TestCase):
     def testDateTimeUpdate(self):
         s1 = State()
@@ -125,6 +132,7 @@ class TestSaveMethod(unittest.TestCase):
         self.assertGreater(s1.updated_at, prev_time)
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestToDictMethod(unittest.TestCase):
     def testToDictionary(self):
         s1 = State()
@@ -150,6 +158,7 @@ class TestToDictMethod(unittest.TestCase):
             s1.to_dict(5)
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestBaseModelFromDict(unittest.TestCase):
     def testRecreate(self):
         s1 = State()
@@ -178,6 +187,7 @@ class TestBaseModelFromDict(unittest.TestCase):
         self.assertEqual(s1.name, "Lagos")
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestInstantiationArguments(unittest.TestCase):
     def testUsingArgsOnly(self):
         unused_id = str(uuid.uuid4())

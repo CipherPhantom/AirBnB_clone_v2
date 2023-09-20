@@ -17,16 +17,19 @@ from unittest.mock import patch, mock_open
 import json
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 def setUpModule():
     FileStorage._FileStorage__objects = {}
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 def tearDownModule():
     FileStorage._FileStorage__objects = {}
     if os.path.exists("file.json"):
         os.remove("file.json")
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestAllBaseModelDocstrings(unittest.TestCase):
     def setUp(self):
         self.b0 = BaseModel()
@@ -51,6 +54,7 @@ class TestAllBaseModelDocstrings(unittest.TestCase):
         self.assertGreater(len(self.b0.to_dict.__doc__), 1)
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestBaseModelClass(unittest.TestCase):
     def setUp(self):
         self.b0 = BaseModel()
@@ -74,6 +78,7 @@ class TestBaseModelClass(unittest.TestCase):
                         total_seconds(), 0.001)
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestStrMethod(unittest.TestCase):
     def testStr(self):
         b1 = BaseModel()
@@ -89,6 +94,7 @@ class TestStrMethod(unittest.TestCase):
                              b1.id, b1.__dict__))
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestSaveMethod(unittest.TestCase):
     def testDateTimeUpdate(self):
         b1 = BaseModel()
@@ -113,6 +119,7 @@ class TestSaveMethod(unittest.TestCase):
         self.assertGreater(b1.updated_at, prev_time)
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestToDictMethod(unittest.TestCase):
     def testToDictionary(self):
         b1 = BaseModel()
@@ -140,6 +147,7 @@ class TestToDictMethod(unittest.TestCase):
             b1.to_dict(5)
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestBaseModelFromDict(unittest.TestCase):
     def testRecreate(self):
         b1 = BaseModel()

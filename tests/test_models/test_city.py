@@ -18,16 +18,19 @@ from models.engine.file_storage import FileStorage
 from unittest.mock import patch, mock_open
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 def setUpModule():
     FileStorage._FileStorage__objects = {}
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 def tearDownModule():
     FileStorage._FileStorage__objects = {}
     if os.path.exists("file.json"):
         os.remove("file.json")
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestAllCityDocstrings(unittest.TestCase):
     def setUp(self):
         self.c0 = City()
@@ -40,6 +43,7 @@ class TestAllCityDocstrings(unittest.TestCase):
         self.assertGreater(len(City.__doc__), 1)
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestCityClass(unittest.TestCase):
     def setUp(self):
         self.c0 = City()
@@ -74,6 +78,7 @@ class TestCityClass(unittest.TestCase):
                         total_seconds(), 0.001)
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestCityClassAttributes(unittest.TestCase):
     def setUp(self):
         self.c0 = City(name="Arizona")
@@ -88,6 +93,7 @@ class TestCityClassAttributes(unittest.TestCase):
         self.assertNotEqual(self.c0.id, prev_id)
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestStrMethod(unittest.TestCase):
     def testStr(self):
         c1 = City()
@@ -108,6 +114,7 @@ class TestStrMethod(unittest.TestCase):
             self.assertEqual(mock_print.getvalue(), "{}\n".format(str(c1)))
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestSaveMethod(unittest.TestCase):
     def testDateTimeUpdate(self):
         c1 = City()
@@ -132,6 +139,7 @@ class TestSaveMethod(unittest.TestCase):
         self.assertEqual(c1.name, "London")
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestToDictMethod(unittest.TestCase):
     def testToDictionary(self):
         c1 = City()
@@ -160,6 +168,7 @@ class TestToDictMethod(unittest.TestCase):
             c1.to_dict(5)
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestCityFromDict(unittest.TestCase):
     def testRecreate(self):
         c1 = City()
@@ -189,6 +198,7 @@ class TestCityFromDict(unittest.TestCase):
         self.assertEqual(c1.name, "Paris")
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestInstantiationArguments(unittest.TestCase):
     def testUsingArgsOnly(self):
         unused_id = str(uuid.uuid4())

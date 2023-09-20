@@ -19,12 +19,14 @@ def fake_new_method(obj):
     return
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 def setUpModule():
     FileStorage._FileStorage__objects = {}
     if os.path.exists("file.json"):
         os.remove("file.json")
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestAllFileStorageDocstrings(unittest.TestCase):
     def testModuleDocstring(self):
         self.assertGreater(len(models.engine.file_storage.__doc__), 1)
@@ -50,6 +52,7 @@ class TestAllFileStorageDocstrings(unittest.TestCase):
         self.assertGreater(len(storage.__doc__), 1)
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestFileStorageClass(unittest.TestCase):
     def test_PrivateAttributeAccess(self):
         with self.assertRaises(AttributeError):
@@ -63,6 +66,7 @@ class TestFileStorageClass(unittest.TestCase):
         self.assertEqual(FileStorage._FileStorage__file_path, "file.json")
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestAllMethod(unittest.TestCase):
     def testReturnValueForAllMethod(self):
         self.assertEqual(type(storage.all()), dict)
@@ -83,6 +87,7 @@ class TestAllMethod(unittest.TestCase):
         FileStorage._FileStorage__objects = {}
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestReloadMethod(unittest.TestCase):
     def testReloadForAbsentFile(self):
         storage.reload()
@@ -118,6 +123,7 @@ class TestReloadMethod(unittest.TestCase):
             storage.reload("arg")
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestNewMethod(unittest.TestCase):
     def testNewWithNoArg(self):
         with self.assertRaises(TypeError):
@@ -140,6 +146,7 @@ class TestNewMethod(unittest.TestCase):
         FileStorage._FileStorage__objects = {}
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestSaveMethod(unittest.TestCase):
     def testSaveMethodWithArg(self):
         with self.assertRaises(TypeError):

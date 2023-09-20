@@ -19,16 +19,19 @@ from models.engine.file_storage import FileStorage
 from unittest.mock import patch, mock_open
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 def setUpModule():
     FileStorage._FileStorage__objects = {}
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 def tearDownModule():
     FileStorage._FileStorage__objects = {}
     if os.path.exists("file.json"):
         os.remove("file.json")
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestAllPlaceDocstrings(unittest.TestCase):
     def setUp(self):
         self.p0 = Place()
@@ -41,6 +44,7 @@ class TestAllPlaceDocstrings(unittest.TestCase):
         self.assertGreater(len(Place.__doc__), 1)
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestPlaceClass(unittest.TestCase):
     def setUp(self):
         self.p0 = Place()
@@ -75,6 +79,7 @@ class TestPlaceClass(unittest.TestCase):
                         total_seconds(), 0.001)
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestPlaceClassAttributes(unittest.TestCase):
     def setUp(self):
         self.c_id = str(uuid.uuid4())
@@ -122,6 +127,7 @@ class TestPlaceClassAttributes(unittest.TestCase):
         self.assertEqual(self.p0.amenities[0].id, a0.id)
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestStrMethod(unittest.TestCase):
     def testStr(self):
         p1 = Place()
@@ -160,6 +166,7 @@ class TestStrMethod(unittest.TestCase):
             self.assertEqual(mock_print.getvalue(), "{}\n".format(str(p1)))
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestSaveMethod(unittest.TestCase):
     def testDateTimeUpdate(self):
         p1 = Place()
@@ -184,6 +191,7 @@ class TestSaveMethod(unittest.TestCase):
         self.assertGreater(p1.updated_at, prev_time)
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestToDictMethod(unittest.TestCase):
     def testToDictionary(self):
         p1 = Place()
@@ -219,6 +227,7 @@ class TestToDictMethod(unittest.TestCase):
             p1.to_dict(5)
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestPlaceFromDict(unittest.TestCase):
     def testRecreate(self):
         p1 = Place()
@@ -251,6 +260,7 @@ class TestPlaceFromDict(unittest.TestCase):
         self.assertEqual(p1.name, "Beachfront aparte")
 
 
+@unittest.skipIf(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestInstantiationArguments(unittest.TestCase):
     def testUsingArgsOnly(self):
         unused_id = str(uuid.uuid4())
