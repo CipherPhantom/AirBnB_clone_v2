@@ -49,7 +49,7 @@ class Place(BaseModel, Base):
             viewonly=False,
             back_populates="place_amenities"
             )
-    
+
     @property
     def reviews(self):
         """Gets the attribute"""
