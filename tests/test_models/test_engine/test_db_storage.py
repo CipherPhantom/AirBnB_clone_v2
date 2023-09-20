@@ -17,10 +17,6 @@ import os
 import json
 
 
-def fake_new_method(obj):
-    return
-
-
 @unittest.skipUnless(os.getenv("HBNB_TYPE_STORAGE") == "db", "For db Storage")
 class TestAllDBStorageDocstrings(unittest.TestCase):
     def testModuleDocstring(self):
@@ -76,11 +72,10 @@ class TestAllMethod(unittest.TestCase):
 @unittest.skipUnless(os.getenv("HBNB_TYPE_STORAGE") == "db", "For FileStorage")
 class TestReloadMethod(unittest.TestCase):
     def testReloadMethodFromEmptyDb(self):
-        Base.metadata.drop_all(storage._DBStorage__engine)
         storage.reload()
         state_table = Base.metadata.tables['states']
 
-        self.assertTrue(city_table.is_derived_from(State))
+        self.assertIs(state_table, State.__table__)
 
     def testReloadMethodWithArg(self):
         with self.assertRaises(TypeError):
