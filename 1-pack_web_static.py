@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Defines a do_pack funtion"""
+"""Defines a do_pack function"""
 import os
 import datetime
 from fabric.api import local
