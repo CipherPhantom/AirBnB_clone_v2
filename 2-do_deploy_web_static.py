@@ -17,7 +17,7 @@ def do_deploy(archive_path):
 
     release_dir = "/data/web_static/releases/{}/".format(archive_dir)
 
-    cmd = put(archive_path, "/tmp/")
+    cmd = put(archive_path, "/tmp/{}".format(archive_file))
     if cmd.failed:
         return False
     cmd = run("rm -rf {}".format(release_dir))
