@@ -10,7 +10,7 @@ env.user = "ubuntu"
 
 def do_deploy(archive_path):
     """Distributes an archive to your web servers."""
-    if not os.path.exists(archive_path):
+    if not os.path.isfile(archive_path):
         return False
 
     archive_file = archive_path.split("/")[-1]
@@ -19,6 +19,9 @@ def do_deploy(archive_path):
     release_dir = "/data/web_static/releases/{}/".format(archive_dir)
 
     cmd = put(archive_path, "/tmp/")
+    if cmd.failed:
+        return False
+    cmd = run("rm -rf {}".format(release_dir))
     if cmd.failed:
         return False
     cmd = run("mkdir -p {}".format(release_dir))
