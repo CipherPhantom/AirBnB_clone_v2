@@ -18,13 +18,16 @@ def do_deploy(archive_path):
 
     release_dir = "/data/web_static/releases/{}/".format(archive_dir)
 
-    put(archive_path, "/tmp/")
-    run("mkdir -p {}".format(release_dir))
-    run("tar -xzf /tmp/{} -C {}".format(archive_file, release_dir))
-    run("rm /tmp/{}".format(archive_file))
-    run("mv {}web_static/* {}".format(release_dir, release_dir))
-    run("rm -rf {}web_static".format(release_dir))
-    run("rm -rf /data/web_static/current")
-    run("ln -s {} /data/web_static/current".format(release_dir))
+    cmd = put(archive_path, "/tmp/")
+    cmd_1 = run("mkdir -p {}".format(release_dir))
+    cmd_2 = run("tar -xzf /tmp/{} -C {}".format(archive_file, release_dir))
+    cmd_3 = run("rm /tmp/{}".format(archive_file))
+    cmd_4 = run("mv {}web_static/* {}".format(release_dir, release_dir))
+    cmd_5 = run("rm -rf {}web_static".format(release_dir))
+    cmd_6 = run("rm -rf /data/web_static/current")
+    cmd_7 = run("ln -s {} /data/web_static/current".format(release_dir))
 
+    if cmd.failed or cmd_1.failed or cmd_2.failed or cmd_3.failed or \
+            cmd_4.failed or cmd_5.failed or cmd_6.failed or cmd_7.failed:
+        return False
     return True
