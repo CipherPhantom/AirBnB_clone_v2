@@ -5,12 +5,10 @@ from fabric.api import env, put, run
 
 
 env.hosts = ["54.197.46.69", "100.26.18.88"]
-env.user = "ubuntu"
-
 
 def do_deploy(archive_path):
     """Distributes an archive to your web servers."""
-    if not os.path.isfile(archive_path):
+    if os.path.isfile(archive_path):
         return False
 
     archive_file = archive_path.split("/")[-1]
