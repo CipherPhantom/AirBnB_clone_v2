@@ -1,4 +1,3 @@
-
 #!/usr/bin/python3
 """Defines the do_deploy function"""
 import os.path
