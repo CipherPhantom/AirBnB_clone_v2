@@ -32,29 +32,47 @@ package { 'nginx':
   require => Exec['apt update'],
 }
 
-file { '/data/web_static/releases/test/':
+file { '/data':
   ensure  => 'directory',
-  recurse => true,
 }
 
-file { '/data/web_static/shared/':
+file { '/data/web_static':
   ensure  => 'directory',
-  recurse => true,
+  require => File['/data'],
 }
+
+file { '/data/web_static/releases':
+  ensure  => 'directory',
+  require => File['/data/web_static'],
+}
+
+file { '/data/web_static/shared':
+  ensure  => 'directory',
+  require => File['/data/web_static'],
+}
+
+file { '/data/web_static/releases/test':
+  ensure  => 'directory',
+  require => File['/data/web_static/releases'],
+}
+
 
 file { '/data/web_static/releases/test/index.html':
   ensure  => 'present',
   content => "Holberton School\n",
+  require => File['/data/web_static/releases/test'],
 }
 
 
 file { '/data/web_static/current':
-  ensure => 'link',
-  target => '/data/web_static/releases/test/',
+  ensure  => 'link',
+  target  => '/data/web_static/releases/test/',
+  require => File['/data/web_static/releases/test'],
 }
 
 exec { 'ubuntu':
   command => 'chown -R ubuntu:ubuntu /data/',
+  require => File['/data'],
 }
 
 file { '/var/www/html/index.html':
