@@ -14,14 +14,14 @@ def do_clean(number=0):
     """deletes out-of-date archives"""
 
     number = 1 if int(number) == 0 else int(number)
-    if os.path.exists("versions") and os.path.isdir("versions"):
-        archives = sorted(os.listdir("versions"))
-        with lcd("versions"):
-            for file in archives[:-number]:
-                local("rm ./{}".format(file))
+    
+    archives = sorted(os.listdir("versions"))
+    [archives.pop() for i in range(number)]
+    with lcd("versions"):
+        [local("rm ./{}".format(a)) for a in archives]
 
     with cd("/data/web_static/releases"):
-        releases = run("ls -tr").split()
-        releases = [ver for ver in releases if "web_static_" in ver]
-        for version in releases[:-number]:
-            run("rm -rf ./{}".format(version))
+        archives = run("ls -tr").split()
+        archives = [a for a in archives if "web_static_" in a]
+        [archives.pop() for i in range(number)]
+        [run("rm -rf ./{}".format(a)) for a in archives]
