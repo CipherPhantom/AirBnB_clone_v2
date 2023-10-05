@@ -1,47 +1,40 @@
 #!/usr/bin/python3
-"""Defines a do_deploy function"""
+"""Defines the do_deploy function"""
 import os
-from fabric.api import env, put, run
+from fabric.api import put, run, env
 
 
 env.hosts = ["100.26.18.88", "54.197.46.69"]
 
 
 def do_deploy(archive_path):
-    """Distributes an archive to your web servers."""
-    if not os.path.isfile(archive_path):
+    """Distributes an archive to  web servers"""
+    if not os.path.exists(archive_path):
         return False
 
-    archive_file = archive_path.split("/")[-1]
-    archive_dir = archive_file.split(".")[0]
+    file = archive_path.split("/")[-1]
+    name = file.split(".")[0]
 
-    release_dir = "/data/web_static/releases/{}/".format(archive_dir)
-
-    cmd = put(archive_path, "/tmp/{}".format(archive_file))
-    if cmd.failed:
+    if put(archive_path, "/tmp/").failed:
         return False
-    cmd = run("rm -rf {}".format(release_dir))
-    if cmd.failed:
+    if run(f"rm -rf /data/web_static/releases/{name}").failed:
         return False
-    cmd = run("mkdir -p {}".format(release_dir))
-    if cmd.failed:
+    if run(f"mkdir -p /data/web_static/releases/{name}/").failed:
         return False
-    cmd = run("tar -xzf /tmp/{} -C {}".format(archive_file, release_dir))
-    if cmd.failed:
+    if run("tar -xzf /tmp/{} -C /data/web_static/releases/{}/".format(
+            file, name)).failed:
         return False
-    cmd = run("rm /tmp/{}".format(archive_file))
-    if cmd.failed:
+    if run(f"rm -f /tmp/{file}").failed:
         return False
-    cmd = run("mv {}web_static/* {}".format(release_dir, release_dir))
-    if cmd.failed:
+    web_static = f"/data/web_static/releases/{name}/web_static/*"
+    cmd = f"mv {web_static} /data/web_static/releases/{name}/"
+    if run(cmd).failed:
         return False
-    cmd = run("rm -rf {}web_static".format(release_dir))
-    if cmd.failed:
+    if run(f"rm -rf /data/web_static/releases/{name}/web_static").failed:
         return False
-    cmd = run("rm -rf /data/web_static/current")
-    if cmd.failed:
+    if run(f"rm -rf /data/web_static/current").failed:
         return False
-    cmd = run("ln -s {} /data/web_static/current".format(release_dir))
-    if cmd.failed:
+    cmd = f"ln -s /data/web_static/releases/{name}/ /data/web_static/current"
+    if run(cmd).failed:
         return False
     return True
