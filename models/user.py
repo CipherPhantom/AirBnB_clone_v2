@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 """Defines a User class"""
+import os
 import models
 from models.base_model import BaseModel, Base
 from sqlalchemy import Column, String
@@ -14,23 +15,25 @@ class User(BaseModel, Base):
     password = Column(String(128), nullable=False)
     first_name = Column(String(128))
     last_name = Column(String(128))
-    places = relationship(
-            'Place',
-            backref="user",
-            cascade="all, delete-orphan")
-    reviews = relationship(
-            "Review",
-            backref="user",
-            cascade="all, delete-orphan")
+    
+    if os.getenv("HBNB_TYPE_STORAGE") == "db":
+        places = relationship(
+                'Place',
+                backref="user",
+                cascade="all, delete-orphan")
+        reviews = relationship(
+                "Review",
+                backref="user",
+                cascade="all, delete-orphan")
+    else:
+        @property
+        def places(self):
+            """Gets the attribute"""
+            places = models.storage.all("Place").values()
+            return [place for place in places if place.user_id == self.id]
 
-    @property
-    def places(self):
-        """Gets the attribute"""
-        places = models.storage.all("Place").values()
-        return [place for place in places if place.user_id == self.id]
-
-    @property
-    def reviews(self):
-        """Gets the attribute"""
-        reviews = models.storage.all("Review").values()
-        return [review for review in reviews if review.user_id == self.id]
+        @property
+        def reviews(self):
+            """Gets the attribute"""
+            reviews = models.storage.all("Review").values()
+            return [review for review in reviews if review.user_id == self.id]
